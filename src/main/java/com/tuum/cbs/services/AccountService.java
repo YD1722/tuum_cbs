@@ -68,4 +68,26 @@ public class AccountService implements AccountServiceI {
 
         return bankAccount;
     }
+
+    @Override
+    public BankAccount getAccountDetails(String accountId) {
+        BankAccount bankAccount;
+
+        // TODO: Reconsider about table architecture or get data from a view
+        try {
+            bankAccount = accountMapper.getAccountByAccountId(accountId);
+
+            if (bankAccount == null) {
+                return null;
+            }
+
+            List<CashAccount> cashAccountList = accountMapper.getCashAccountListByAccountId(accountId);
+
+            bankAccount.setCashAccountList(cashAccountList);
+        } catch (Exception e) {
+            throw e;
+        }
+
+        return bankAccount;
+    }
 }

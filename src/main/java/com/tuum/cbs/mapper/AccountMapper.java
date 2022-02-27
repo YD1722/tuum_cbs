@@ -14,6 +14,9 @@ public interface AccountMapper {
     @Select("SELECT * FROM BANK_ACCOUNT where customer_id = #{customerId}")
     BankAccount getAccountByCustomerId(@Param("customerId") int customerId);
 
+    @Select("SELECT * FROM BANK_ACCOUNT where account_id = #{accountId}")
+    BankAccount getAccountByAccountId(@Param("accountId") String accountId);
+
     @Select("SELECT * FROM CASH_ACCOUNT where bank_account_id = #{accountID}")
     List<CashAccount> getCashAccountListByAccountId(@Param("accountID") String accountID);
 
