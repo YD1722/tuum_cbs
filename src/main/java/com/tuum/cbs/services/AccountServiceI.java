@@ -1,11 +1,11 @@
 package com.tuum.cbs.services;
 
-import com.tuum.cbs.beans.BankAccount;
-import com.tuum.cbs.beans.request.AccountInput;
+import com.tuum.cbs.beans.common.request.AccountRequest;
+import com.tuum.cbs.beans.common.response.Response;
 
 
 public interface AccountServiceI {
-    BankAccount createNewAccount(AccountInput accountInput);
+    Response createNewAccount(AccountRequest accountRequest);
 
-    BankAccount getAccountDetails(String accountId);
+    Response getAccountDetails(String accountId);
 }

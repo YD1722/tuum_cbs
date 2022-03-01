@@ -1,12 +1,11 @@
 package com.tuum.cbs.helpers;
 
-import com.tuum.cbs.beans.request.AccountInput;
-
 import java.util.List;
 
-public class AccountHelper {
-    private static String[] supportedCurrencyList = new String[]{"EUR", "SEK", "GBP", "USD"};
+import com.tuum.cbs.beans.common.request.AccountRequest;
+import static com.tuum.cbs.helpers.ApplicationConstants.SUPPORTED_CURRENCIES;
 
+public class AccountHelper {
     public static String getAccId() {
         return String.valueOf(Math.random());
     }
@@ -15,13 +14,13 @@ public class AccountHelper {
         return String.valueOf(Math.random());
     }
 
-    public static boolean isRequestValid(AccountInput accountInput) {
-        return isCurrencySupported(accountInput.getCurrencyCodeList());
+    public static boolean isRequestValid(AccountRequest accountRequest) {
+        return isCurrencySupported(accountRequest.getCurrencyCodeList());
     }
 
     private static boolean isCurrencySupported(List<String> currencyCodeList) {
         for (String code : currencyCodeList) {
-            if (!List.of(supportedCurrencyList).contains(code)) {
+            if (!List.of(SUPPORTED_CURRENCIES).contains(code)) {
                 return false;
             }
         }

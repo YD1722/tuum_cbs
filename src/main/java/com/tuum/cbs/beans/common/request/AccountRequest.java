@@ -1,8 +1,8 @@
-package com.tuum.cbs.beans.request;
+package com.tuum.cbs.beans.common.request;
 
 import java.util.List;
 
-public class AccountInput {
+public class AccountRequest {
     private int customerId;
     private int countryId;
     private List<String> currencyCodeList;

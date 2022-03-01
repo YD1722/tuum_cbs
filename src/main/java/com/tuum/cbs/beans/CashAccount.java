@@ -1,9 +1,19 @@
 package com.tuum.cbs.beans;
 
 public class CashAccount {
+    private int cashAccountId;
     private String bankAccountId;
     private String currencyCode;
-    private double balance;
+    private double balance; // TODO: Determine data type
+    private double availableBalance;
+
+    public int getCashAccountId() {
+        return cashAccountId;
+    }
+
+    public void setCashAccountId(int cashAccountId) {
+        this.cashAccountId = cashAccountId;
+    }
 
     public String getBankAccountId() {
         return bankAccountId;
@@ -27,5 +37,13 @@ public class CashAccount {
 
     public void setBalance(double balance) {
         this.balance = balance;
+    }
+
+    public double getAvailableBalance() {
+        return availableBalance;
+    }
+
+    public void setAvailableBalance(double availableBalance) {
+        this.availableBalance = availableBalance;
     }
 }
