@@ -29,5 +29,5 @@ public interface AccountMapper {
     int insertCashAccount(CashAccount cashAccount);
 
     @Update("UPDATE CASH_ACCOUNT SET available_balance = #{availableBalance} WHERE cash_account_id = #{cashAccountId}")
-    int updateCashAccount(@Param("cashAccountId") int cashAccountId, @Param("availableBalance") double availableBalance);
+    int updateCashAccount(CashAccount cashAccount);
 }
