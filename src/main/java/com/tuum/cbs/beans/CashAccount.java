@@ -1,11 +1,30 @@
 package com.tuum.cbs.beans;
 
+import java.math.BigDecimal;
+
 public class CashAccount {
+    private int customerId; // TODO: Check this
+    private String accountId;
     private int cashAccountId;
-    private String bankAccountId;
     private String currencyCode;
-    private double balance; // TODO: Determine data type
-    private double availableBalance;
+    private BigDecimal balance = BigDecimal.ZERO;
+    private BigDecimal availableBalance = BigDecimal.ZERO;
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
+    }
 
     public int getCashAccountId() {
         return cashAccountId;
@@ -13,14 +32,6 @@ public class CashAccount {
 
     public void setCashAccountId(int cashAccountId) {
         this.cashAccountId = cashAccountId;
-    }
-
-    public String getBankAccountId() {
-        return bankAccountId;
-    }
-
-    public void setBankAccountId(String bankAccountId) {
-        this.bankAccountId = bankAccountId;
     }
 
     public String getCurrencyCode() {
@@ -31,19 +42,19 @@ public class CashAccount {
         this.currencyCode = currencyCode;
     }
 
-    public double getBalance() {
+    public BigDecimal getBalance() {
         return balance;
     }
 
-    public void setBalance(double balance) {
+    public void setBalance(BigDecimal balance) {
         this.balance = balance;
     }
 
-    public double getAvailableBalance() {
+    public BigDecimal getAvailableBalance() {
         return availableBalance;
     }
 
-    public void setAvailableBalance(double availableBalance) {
+    public void setAvailableBalance(BigDecimal availableBalance) {
         this.availableBalance = availableBalance;
     }
 }

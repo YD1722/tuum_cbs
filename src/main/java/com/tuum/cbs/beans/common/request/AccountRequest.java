@@ -1,10 +1,17 @@
 package com.tuum.cbs.beans.common.request;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 public class AccountRequest {
+    @Min(1)
     private int customerId;
+
+    @Min(1)
     private int countryId;
+
+    @NotNull
     private List<String> currencyCodeList;
 
     public int getCustomerId() {

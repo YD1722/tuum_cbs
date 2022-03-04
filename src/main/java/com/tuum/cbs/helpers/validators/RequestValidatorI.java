@@ -1,4 +1,4 @@
-package com.tuum.cbs.helpers;
+package com.tuum.cbs.helpers.validators;
 
 import java.util.List;
 

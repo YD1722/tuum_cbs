@@ -10,15 +10,20 @@ import com.tuum.cbs.beans.common.response.Response;
 import com.tuum.cbs.beans.common.response.TransactionResponse;
 import com.tuum.cbs.mapper.AccountMapper;
 import com.tuum.cbs.mapper.TransactionMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 import static com.tuum.cbs.helpers.ApplicationConstants.MIN_ACC_BALANCE;
 
 @Service
 public class TransactionService implements TransactionServiceI {
+    Logger logger = LoggerFactory.getLogger(TransactionService.class);
+
     private AccountMapper accountMapper;
     private TransactionMapper transactionMapper;
 
@@ -46,8 +51,11 @@ public class TransactionService implements TransactionServiceI {
                 deposit(cashAccount, transactionRequest, response);
             } else if (transactionRequest.getDirection() == TransactionDirection.OUT.getValue()) {
                 withdraw(cashAccount, transactionRequest, response);
+            } else {
+
             }
         } catch (Exception e) {
+            logger.error("Error", e);
             response.setStatus(ResponseStatus.ERROR);
         }
 
@@ -55,7 +63,7 @@ public class TransactionService implements TransactionServiceI {
     }
 
     private void deposit(CashAccount cashAccount, TransactionRequest transactionRequest, Response response) {
-        double balanceAfterTx = cashAccount.getAvailableBalance() + transactionRequest.getAmount();
+        BigDecimal balanceAfterTx = cashAccount.getAvailableBalance().add(transactionRequest.getAmount());
 
         try {
             doTransaction(cashAccount, transactionRequest, response, balanceAfterTx);
@@ -66,9 +74,9 @@ public class TransactionService implements TransactionServiceI {
     }
 
     private void withdraw(CashAccount cashAccount, TransactionRequest transactionRequest, Response response) {
-        double balanceAfterTx = cashAccount.getAvailableBalance() - transactionRequest.getAmount();
+        BigDecimal balanceAfterTx = cashAccount.getAvailableBalance().subtract(transactionRequest.getAmount());
 
-        if (balanceAfterTx < MIN_ACC_BALANCE) {
+        if (balanceAfterTx.compareTo(MIN_ACC_BALANCE) < 0) {
             response.setError("Insufficient account balance");
             response.setStatus(ResponseStatus.ERROR);
 
@@ -78,27 +86,30 @@ public class TransactionService implements TransactionServiceI {
         try {
             doTransaction(cashAccount, transactionRequest, response, balanceAfterTx);
         } catch (Exception e) {
+            logger.error("Error", e);
+
             // TODO: Separate transaction log table
             response.setError("Error in withdraw");
             response.setStatus(ResponseStatus.ERROR);
         }
     }
 
-    private void doTransaction(CashAccount cashAccount, TransactionRequest transactionRequest, Response response, double balanceAfterTx) {
+    private void doTransaction(CashAccount cashAccount, TransactionRequest transactionRequest, Response response, BigDecimal balanceAfterTx) {
         cashAccount.setAvailableBalance(balanceAfterTx);
 
         try {
             accountMapper.updateCashAccount(cashAccount);
-            updateTransaction(cashAccount, transactionRequest, TransactionStatus.SUCCESS);
+            Transaction transaction = updateTransaction(cashAccount, transactionRequest, TransactionStatus.SUCCESS);
 
             response.setStatus(ResponseStatus.SUCCESS);
-            response.setData(getTransactionResponseData(cashAccount, transactionRequest));
+            response.setData(getTransactionResponseData(transaction, transactionRequest, cashAccount));
         } catch (Exception e) {
+            logger.error("Error", e);
             throw e;
         }
     }
 
-    private void updateTransaction(CashAccount updatedCashAcc, TransactionRequest transactionRequest, TransactionStatus transactionStatus) {
+    private Transaction updateTransaction(CashAccount updatedCashAcc, TransactionRequest transactionRequest, TransactionStatus transactionStatus) {
         Transaction transaction = new Transaction();
 
         transaction.setAmount(updatedCashAcc.getAvailableBalance());
@@ -110,14 +121,17 @@ public class TransactionService implements TransactionServiceI {
         try {
             transactionMapper.insertTransaction(transaction);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error", e);
             throw e;
         }
+
+        return transaction;
     }
 
-    private TransactionResponse getTransactionResponseData(CashAccount cashAccount, TransactionRequest transactionRequest) {
+    private TransactionResponse getTransactionResponseData(Transaction transaction, TransactionRequest transactionRequest, CashAccount cashAccount) {
         TransactionResponse transactionResponse = new TransactionResponse();
 
+        transactionResponse.setTransactionId(transaction.getTransactionId());
         transactionResponse.setAccountId(transactionRequest.getAccountId());
         transactionResponse.setTransactionDirection(transactionRequest.getDirection());
         transactionResponse.setCurrencyCode(transactionRequest.getCurrencyCode());

@@ -2,8 +2,8 @@ package com.tuum.cbs.controllers;
 
 import com.tuum.cbs.beans.common.request.TransactionRequest;
 import com.tuum.cbs.beans.common.response.Response;
-import com.tuum.cbs.helpers.RequestValidatorI;
-import com.tuum.cbs.helpers.TransactionRequestValidator;
+import com.tuum.cbs.helpers.validators.RequestValidatorI;
+import com.tuum.cbs.helpers.validators.TransactionRequestValidator;
 import com.tuum.cbs.services.TransactionServiceI;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class TransactionController {
-    RequestValidatorI transactionRequestValidator; // TODO: Check here
+    RequestValidatorI transactionRequestValidator;
     TransactionServiceI transactionServiceI;
 
     public TransactionController(TransactionServiceI transactionServiceI) {
@@ -24,13 +24,13 @@ public class TransactionController {
     public ResponseEntity transaction(@RequestBody TransactionRequest transactionRequest) {
 
         try {
-            this.transactionRequestValidator = new TransactionRequestValidator(transactionRequest); // TODO: Constructor DI
+            this.transactionRequestValidator = new TransactionRequestValidator(transactionRequest);
             this.transactionRequestValidator.validate();
 
             if (!this.transactionRequestValidator.isValid()) {
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
-                        .body(this.transactionRequestValidator.getValidationResults()); // TODO: Revisit this
+                        .body(this.transactionRequestValidator.getValidationResults());
             }
 
             Response response = this.transactionServiceI.handleTransaction(transactionRequest);

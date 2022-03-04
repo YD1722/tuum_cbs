@@ -1,13 +1,15 @@
 package com.tuum.cbs.beans.common.response;
 
+import java.math.BigDecimal;
+
 public class TransactionResponse {
     private String accountId;
-    private int transactionId; // TODO: How to get transaction id
-    private double amount;
+    private int transactionId;
+    private BigDecimal amount;
     private String currencyCode;
     private int transactionDirection;
     private String description;
-    private double newBalance;
+    private BigDecimal newBalance;
 
     public String getAccountId() {
         return accountId;
@@ -25,11 +27,11 @@ public class TransactionResponse {
         this.transactionId = transactionId;
     }
 
-    public double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
@@ -57,11 +59,11 @@ public class TransactionResponse {
         this.description = description;
     }
 
-    public double getNewBalance() {
+    public BigDecimal getNewBalance() {
         return newBalance;
     }
 
-    public void setNewBalance(double newBalance) {
+    public void setNewBalance(BigDecimal newBalance) {
         this.newBalance = newBalance;
     }
 }

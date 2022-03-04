@@ -1,69 +1,67 @@
 package com.tuum.cbs.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tuum.cbs.beans.BankAccount;
 import com.tuum.cbs.beans.CashAccount;
 import com.tuum.cbs.beans.common.ResponseStatus;
 import com.tuum.cbs.beans.common.request.AccountRequest;
 import com.tuum.cbs.beans.common.response.Response;
 import com.tuum.cbs.helpers.AccountHelper;
+import com.tuum.cbs.helpers.ArrayUtils;
 import com.tuum.cbs.mapper.AccountMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO: where to put the mark? interface or class
 @Service
 public class AccountService implements AccountServiceI {
-    private final PlatformTransactionManager transactionManager;
-    private AccountMapper accountMapper;
+    Logger logger = LoggerFactory.getLogger(AccountService.class);
 
-    public AccountService(PlatformTransactionManager transactionManager, AccountMapper accountMapper) {
-        this.transactionManager = transactionManager;
+    private AccountMapper accountMapper;
+    private ObjectMapper objectMapper;
+
+    public AccountService(AccountMapper accountMapper, ObjectMapper objectMapper) {
         this.accountMapper = accountMapper;
+        this.objectMapper = objectMapper;
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.SUPPORTS, rollbackFor = {Exception.class, Error.class})
     public Response createNewAccount(AccountRequest accountRequest) {
         Response response = new Response();
 
         try {
-            BankAccount bankAccount = accountMapper.getAccountByCustomerId(accountRequest.getCustomerId());
-            List<CashAccount> cashAccountList = new ArrayList<>();
+            String accountId;
+            List<String> currencyCodeList = accountRequest.getCurrencyCodeList();
+            List<CashAccount> customerCashAccountList = accountMapper.getAccountsByCustomerId(accountRequest.getCustomerId());
 
-            if (bankAccount == null) {
-                bankAccount = new BankAccount();
-
-                bankAccount.setAccountId(AccountHelper.getAccId());
-                bankAccount.setCustomerId(accountRequest.getCustomerId());
+            if (customerCashAccountList == null || customerCashAccountList.size() == 0) {
+                BankAccount bankAccount = createNewBankAccount(accountRequest);
+                accountId = bankAccount.getAccountId();
 
                 accountMapper.insertBankAccount(bankAccount);
             } else {
-                cashAccountList = accountMapper.getCashAccountListByAccountId(bankAccount.getAccountId());
-
-                // Validate existing currencies
+                currencyCodeList = getMissingCurrencyList(currencyCodeList, getExistingCurrencyList(customerCashAccountList));
+                accountId = customerCashAccountList.get(0).getAccountId();
             }
 
-            for (String currencyCode : accountRequest.getCurrencyCodeList()) {
-                CashAccount cashAccount = new CashAccount();
+            List<CashAccount> cashAccountList = createNewCashAccounts(accountId, currencyCodeList);
 
-                cashAccount.setBankAccountId(bankAccount.getAccountId());
-                cashAccount.setCurrencyCode(currencyCode);
-                cashAccount.setBalance(0);
-                cashAccount.setAvailableBalance(0);
-
+            // TODO: Batch insert
+            for (CashAccount cashAccount : cashAccountList) {
                 accountMapper.insertCashAccount(cashAccount);
-                cashAccountList.add(cashAccount);
             }
 
-            bankAccount.setCashAccountList(cashAccountList);
-
-            response.setData(bankAccount);
+            response.setData(getAccountResponse(accountId, accountRequest.getCustomerId(), cashAccountList));
             response.setStatus(ResponseStatus.SUCCESS);
         } catch (Exception e) {
+            logger.error("Error", e);
             response.setStatus(ResponseStatus.ERROR);
         }
 
@@ -74,24 +72,90 @@ public class AccountService implements AccountServiceI {
     public Response getAccountDetails(String accountId) {
         Response response = new Response();
 
-        // TODO: Reconsider about table architecture or get data from a view
         try {
-            BankAccount bankAccount = accountMapper.getAccountByAccountId(accountId);
+            List<CashAccount> customerCashAccountList = accountMapper.getAccountsByAccountId(accountId);
 
-            if (bankAccount == null) {
+            if (customerCashAccountList == null || customerCashAccountList.size() == 0) {
+                response.setError("Account not found");
+                response.setStatus(ResponseStatus.ERROR);
+
                 return null;
             }
 
-            List<CashAccount> cashAccountList = accountMapper.getCashAccountListByAccountId(accountId);
-
-            bankAccount.setCashAccountList(cashAccountList);
-
-            response.setData(bankAccount);
+            response.setData(getAccountResponse(accountId, customerCashAccountList.get(0).getCustomerId(), customerCashAccountList));
             response.setStatus(ResponseStatus.SUCCESS);
         } catch (Exception e) {
+            logger.error("Error", e);
             response.setStatus(ResponseStatus.ERROR);
         }
 
         return response;
+    }
+
+    private ObjectNode getAccountResponse(String accountId, int customerId, List<CashAccount> cashAccountList) {
+        ObjectNode response = objectMapper.createObjectNode();
+
+        response.put("accountId", accountId);
+        response.put("customerId", customerId);
+
+        List<ObjectNode> balanceList = getBalanceList(cashAccountList);
+
+        response.put("balances", String.valueOf(balanceList));
+
+        return response;
+    }
+
+    private List<ObjectNode> getBalanceList(List<CashAccount> cashAccountList) {
+        List<ObjectNode> balanceList = new ArrayList<>();
+
+        for (CashAccount cashAccount : cashAccountList) {
+            ObjectNode balance = objectMapper.createObjectNode();
+
+            balance.put("amount", cashAccount.getAvailableBalance());
+            balance.put("currency", cashAccount.getCurrencyCode());
+
+            balanceList.add(balance);
+        }
+
+        return balanceList;
+    }
+
+
+    private List<String> getExistingCurrencyList(List<CashAccount> customerCashAccountList) {
+        List<String> list = new ArrayList<>();
+
+        for (CashAccount customerCashAccount : customerCashAccountList) {
+            list.add(customerCashAccount.getCurrencyCode());
+        }
+
+        return list;
+    }
+
+    private List<String> getMissingCurrencyList(List<String> reqCurrencyList, List<String> existingCurrencyList) {
+        return ArrayUtils.getListsDiff(reqCurrencyList, existingCurrencyList);
+    }
+
+    private List<CashAccount> createNewCashAccounts(String accountId, List<String> currencyCodeList) {
+        List<CashAccount> cashAccountList = new ArrayList<>();
+
+        for (String currencyCode : currencyCodeList) {
+            CashAccount cashAccount = new CashAccount();
+
+            cashAccount.setAccountId(accountId);
+            cashAccount.setCurrencyCode(currencyCode);
+
+            cashAccountList.add(cashAccount);
+        }
+
+        return cashAccountList;
+    }
+
+    private BankAccount createNewBankAccount(AccountRequest accountRequest) {
+        BankAccount bankAccount = new BankAccount();
+
+        bankAccount.setAccountId(AccountHelper.getAccId());
+        bankAccount.setCustomerId(accountRequest.getCustomerId());
+
+        return bankAccount;
     }
 }

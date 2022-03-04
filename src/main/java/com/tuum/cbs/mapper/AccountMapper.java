@@ -8,24 +8,21 @@ import java.util.List;
 
 @Mapper
 public interface AccountMapper {
-    @Select("SELECT * FROM BANK_ACCOUNT where customer_id = #{customerId}")
-    BankAccount getAccountByCustomerId(@Param("customerId") int customerId);
+    @Select("SELECT * FROM ALL_CASH_ACCOUNTS where customer_id = #{customerId}")
+    List<CashAccount> getAccountsByCustomerId(@Param("customerId") int customerId);
 
-    @Select("SELECT * FROM BANK_ACCOUNT where account_id = #{accountId}")
-    BankAccount getAccountByAccountId(@Param("accountId") String accountId);
+    @Select("SELECT * FROM ALL_CASH_ACCOUNTS where account_id = #{accountId}")
+    List<CashAccount> getAccountsByAccountId(@Param("accountId") String accountId);
 
-    @Select("SELECT * FROM CASH_ACCOUNT where bank_account_id = #{accountID}")
-    List<CashAccount> getCashAccountListByAccountId(@Param("accountID") String accountID);
-
-    @Select("SELECT * FROM CASH_ACCOUNT WHERE bank_account_id = #{accountID} AND currency_code = #{currencyCode}")
+    @Select("SELECT * FROM CASH_ACCOUNT WHERE account_id = #{accountID} AND currency_code = #{currencyCode}")
     CashAccount getCashAccount(@Param("accountID") String accountID, @Param("currencyCode") String currencyCode);
 
     @Insert("INSERT INTO BANK_ACCOUNT(account_id, customer_id) " +
             " VALUES (#{accountId}, #{customerId})")
     int insertBankAccount(BankAccount bankAccount);
 
-    @Insert("INSERT INTO CASH_ACCOUNT(bank_account_id, currency_code, balance) " +
-            " VALUES (#{bankAccountId}, #{currencyCode}, #{balance})")
+    @Insert("INSERT INTO CASH_ACCOUNT(account_id, currency_code, balance) " +
+            " VALUES (#{accountsahId}, #{currencyCode}, #{balance})")
     int insertCashAccount(CashAccount cashAccount);
 
     @Update("UPDATE CASH_ACCOUNT SET available_balance = #{availableBalance} WHERE cash_account_id = #{cashAccountId}")

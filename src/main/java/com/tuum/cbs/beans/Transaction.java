@@ -1,12 +1,13 @@
 package com.tuum.cbs.beans;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 // TODO: Consider about all getters and setters
 public class Transaction {
     private int transactionId;
     private int type;
-    private Double amount;
+    private BigDecimal amount;
     private String description;
     private int status;
     private Timestamp timestamp;
@@ -27,11 +28,11 @@ public class Transaction {
         this.type = type;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
