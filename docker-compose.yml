@@ -1,0 +1,24 @@
+version: '3.3'
+
+services:
+  cbs:
+    image: 'tuum_cbs:latest'
+    build:
+      context: .
+    container_name: tuum_cbs
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/tuum_cbs
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123
+
+  db:
+    image: 'tuum_cbs_db:latest'
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
