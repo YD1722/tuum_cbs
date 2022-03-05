@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.List;
 
 import static com.tuum.cbs.helpers.ApplicationConstants.MIN_ACC_BALANCE;
 
@@ -64,6 +65,17 @@ public class TransactionService implements TransactionServiceI {
         }
 
         return response;
+    }
+
+    @Override
+    public Response getTransactions(String accountId) {
+        try {
+            List<Transaction> transactionList = transactionMapper.getTransactionDetails(accountId);
+            return ServiceResponseHandler.generateResponse(ResponseStatus.SUCCESS, transactionList);
+        } catch (Exception e) {
+            logger.error("Error in getting transaction details", e);
+            return ServiceResponseHandler.generateErrorResponse();
+        }
     }
 
     private void deposit(CashAccount cashAccount, TransactionRequest transactionRequest, Response response) {
@@ -116,8 +128,8 @@ public class TransactionService implements TransactionServiceI {
         Transaction transaction = new Transaction();
 
         transaction.setAmount(updatedCashAcc.getAvailableBalance());
-        transaction.setTimestamp(new Timestamp(System.currentTimeMillis()));
-        transaction.setType(transactionRequest.getDirection());
+        transaction.setTransactionTime(new Timestamp(System.currentTimeMillis()));
+        transaction.setDirection(transactionRequest.getDirection());
         transaction.setStatus(transactionStatus.getValue());
         transaction.setDescription(transactionRequest.getDescription());
 

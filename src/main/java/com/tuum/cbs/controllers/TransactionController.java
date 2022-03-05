@@ -9,7 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.constraints.NotEmpty;
 
 @RestController
 public class TransactionController {
@@ -22,7 +25,6 @@ public class TransactionController {
 
     @PostMapping("/transaction")
     public ResponseEntity transaction(@RequestBody TransactionRequest transactionRequest) {
-
         try {
             this.transactionRequestValidator = new TransactionRequestValidator(transactionRequest);
             this.transactionRequestValidator.validate();
@@ -38,5 +40,11 @@ public class TransactionController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @PostMapping("/getTransaction")
+    public ResponseEntity getTransaction(@RequestParam @NotEmpty String accountId) {
+        Response response = this.transactionServiceI.getTransactions(accountId);
+        return ResponseEntity.ok(response);
     }
 }

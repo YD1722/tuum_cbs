@@ -12,7 +12,7 @@ public class TransactionRequest {
     @NotEmpty
     private String currencyCode; // TODO: Currency ID
 
-    private int direction; // 1: in , 2: out
+    private int direction;
 
     @NotEmpty
     private String description;

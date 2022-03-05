@@ -37,6 +37,7 @@ public class AccountService implements AccountServiceI {
     @Override
     @Transactional
     public Response createNewAccount(AccountRequest accountRequest) {
+        // TODO: Move to separate service response handler
         Response response = new Response();
 
         try {

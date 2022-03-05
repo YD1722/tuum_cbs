@@ -5,4 +5,6 @@ import com.tuum.cbs.beans.common.response.Response;
 
 public interface TransactionServiceI {
     Response handleTransaction(TransactionRequest transactionRequest);
+
+    Response getTransactions(String accountId);
 }

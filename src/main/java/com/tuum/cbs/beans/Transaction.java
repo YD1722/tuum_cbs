@@ -3,14 +3,14 @@ package com.tuum.cbs.beans;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
-// TODO: Consider about all getters and setters
 public class Transaction {
     private int transactionId;
-    private int type;
+    private int cashAccountId;
+    private int direction;
     private BigDecimal amount;
     private String description;
     private int status;
-    private Timestamp timestamp;
+    private Timestamp transactionTime;
 
     public int getTransactionId() {
         return transactionId;
@@ -20,12 +20,20 @@ public class Transaction {
         this.transactionId = transactionId;
     }
 
-    public int getType() {
-        return type;
+    public int getCashAccountId() {
+        return cashAccountId;
     }
 
-    public void setType(int type) {
-        this.type = type;
+    public void setCashAccountId(int cashAccountId) {
+        this.cashAccountId = cashAccountId;
+    }
+
+    public int getDirection() {
+        return direction;
+    }
+
+    public void setDirection(int direction) {
+        this.direction = direction;
     }
 
     public BigDecimal getAmount() {
@@ -52,11 +60,11 @@ public class Transaction {
         this.status = status;
     }
 
-    public Timestamp getTimestamp() {
-        return timestamp;
+    public Timestamp getTransactionTime() {
+        return transactionTime;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
+    public void setTransactionTime(Timestamp transactionTime) {
+        this.transactionTime = transactionTime;
     }
 }
