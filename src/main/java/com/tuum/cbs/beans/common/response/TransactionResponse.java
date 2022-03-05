@@ -3,8 +3,6 @@ package com.tuum.cbs.beans.common.response;
 import java.math.BigDecimal;
 
 public class TransactionResponse {
-    // map here
-
     private String accountId;
     private int transactionId;
     private BigDecimal amount;
