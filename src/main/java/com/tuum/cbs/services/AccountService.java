@@ -33,6 +33,7 @@ public class AccountService implements AccountServiceI {
         this.cashAccountServiceI = cashAccountServiceI;
     }
 
+    // TODO: add propagation
     @Override
     @Transactional
     public Response createNewAccount(AccountRequest accountRequest) {
@@ -55,6 +56,7 @@ public class AccountService implements AccountServiceI {
 
             List<CashAccount> cashAccountList = this.cashAccountServiceI.createNewCashAccounts(accountId, currencyCodeList);
 
+            // Response from hashmap
             response.setData(getAccountResponse(accountId, accountRequest.getCustomerId(), cashAccountList));
             response.setStatus(ResponseStatus.SUCCESS);
         } catch (PersistenceException e) {
@@ -76,10 +78,10 @@ public class AccountService implements AccountServiceI {
             List<CashAccount> customerCashAccountList = accountMapper.getAccountsByAccountId(accountId);
 
             if (customerCashAccountList == null || customerCashAccountList.size() == 0) {
-                response.setError("Account not found");
+                response.setMessage("Account not found");
                 response.setStatus(ResponseStatus.ERROR);
 
-                return null;
+                return response;
             }
 
             response.setData(getAccountResponse(accountId, customerCashAccountList.get(0).getCustomerId(), customerCashAccountList));

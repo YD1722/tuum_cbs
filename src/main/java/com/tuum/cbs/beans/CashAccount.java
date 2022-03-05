@@ -3,7 +3,8 @@ package com.tuum.cbs.beans;
 import java.math.BigDecimal;
 
 public class CashAccount {
-    private int customerId; // TODO: Check this
+    // TODO : New bean for view data
+    private int customerId;
     private String accountId;
     private int cashAccountId;
     private String currencyCode;

@@ -5,7 +5,7 @@ import com.tuum.cbs.beans.common.ResponseStatus;
 public class Response {
     private ResponseStatus status;
     private Object data;
-    private String error;
+    private String message;
 
     public ResponseStatus getStatus() {
         return status;
@@ -23,11 +23,11 @@ public class Response {
         this.data = data;
     }
 
-    public String getError() {
-        return error;
+    public String getMessage() {
+        return message;
     }
 
-    public void setError(String error) {
-        this.error = error;
+    public void setMessage(String message) {
+        this.message = message;
     }
 }
