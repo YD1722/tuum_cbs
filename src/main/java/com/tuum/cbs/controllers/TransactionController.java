@@ -36,7 +36,7 @@ public class TransactionController {
             Response response = this.transactionServiceI.handleTransaction(transactionRequest);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return (ResponseEntity) ResponseEntity.internalServerError();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

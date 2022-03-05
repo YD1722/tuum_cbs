@@ -10,10 +10,10 @@ import com.tuum.cbs.beans.common.response.Response;
 import com.tuum.cbs.helpers.AccountHelper;
 import com.tuum.cbs.helpers.ArrayUtils;
 import com.tuum.cbs.mapper.AccountMapper;
+import org.apache.ibatis.exceptions.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -25,14 +25,16 @@ public class AccountService implements AccountServiceI {
 
     private AccountMapper accountMapper;
     private ObjectMapper objectMapper;
+    private CashAccountServiceI cashAccountServiceI;
 
-    public AccountService(AccountMapper accountMapper, ObjectMapper objectMapper) {
+    public AccountService(AccountMapper accountMapper, ObjectMapper objectMapper, CashAccountServiceI cashAccountServiceI) {
         this.accountMapper = accountMapper;
         this.objectMapper = objectMapper;
+        this.cashAccountServiceI = cashAccountServiceI;
     }
 
     @Override
-    @Transactional(propagation = Propagation.SUPPORTS, rollbackFor = {Exception.class, Error.class})
+    @Transactional
     public Response createNewAccount(AccountRequest accountRequest) {
         Response response = new Response();
 
@@ -51,15 +53,13 @@ public class AccountService implements AccountServiceI {
                 accountId = customerCashAccountList.get(0).getAccountId();
             }
 
-            List<CashAccount> cashAccountList = createNewCashAccounts(accountId, currencyCodeList);
-
-            // TODO: Batch insert
-            for (CashAccount cashAccount : cashAccountList) {
-                accountMapper.insertCashAccount(cashAccount);
-            }
+            List<CashAccount> cashAccountList = this.cashAccountServiceI.createNewCashAccounts(accountId, currencyCodeList);
 
             response.setData(getAccountResponse(accountId, accountRequest.getCustomerId(), cashAccountList));
             response.setStatus(ResponseStatus.SUCCESS);
+        } catch (PersistenceException e) {
+            logger.error("Error", e);
+            response.setStatus(ResponseStatus.ERROR);
         } catch (Exception e) {
             logger.error("Error", e);
             response.setStatus(ResponseStatus.ERROR);
@@ -133,21 +133,6 @@ public class AccountService implements AccountServiceI {
 
     private List<String> getMissingCurrencyList(List<String> reqCurrencyList, List<String> existingCurrencyList) {
         return ArrayUtils.getListsDiff(reqCurrencyList, existingCurrencyList);
-    }
-
-    private List<CashAccount> createNewCashAccounts(String accountId, List<String> currencyCodeList) {
-        List<CashAccount> cashAccountList = new ArrayList<>();
-
-        for (String currencyCode : currencyCodeList) {
-            CashAccount cashAccount = new CashAccount();
-
-            cashAccount.setAccountId(accountId);
-            cashAccount.setCurrencyCode(currencyCode);
-
-            cashAccountList.add(cashAccount);
-        }
-
-        return cashAccountList;
     }
 
     private BankAccount createNewBankAccount(AccountRequest accountRequest) {

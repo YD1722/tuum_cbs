@@ -36,7 +36,7 @@ public class AccountController {
             Response response = accountServiceI.createNewAccount(accountRequest);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return (ResponseEntity) ResponseEntity.internalServerError();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -46,7 +46,7 @@ public class AccountController {
             Response response = accountServiceI.getAccountDetails(accountId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return (ResponseEntity) ResponseEntity.internalServerError();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
