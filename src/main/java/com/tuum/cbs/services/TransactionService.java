@@ -5,9 +5,10 @@ import com.tuum.cbs.beans.Transaction;
 import com.tuum.cbs.beans.common.ResponseStatus;
 import com.tuum.cbs.beans.common.TransactionDirection;
 import com.tuum.cbs.beans.common.TransactionStatus;
-import com.tuum.cbs.beans.common.request.TransactionRequest;
+import com.tuum.cbs.beans.common.requests.TransactionCreateRequest;
 import com.tuum.cbs.beans.common.response.Response;
-import com.tuum.cbs.beans.common.response.TransactionResponse;
+import com.tuum.cbs.beans.common.response.TransactionCreateResponse;
+import com.tuum.cbs.beans.common.response.TransactionGetResponse;
 import com.tuum.cbs.mapper.TransactionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,11 +35,11 @@ public class TransactionService implements TransactionServiceI {
 
     @Override
     @Transactional
-    public Response handleTransaction(TransactionRequest transactionRequest) {
+    public Response handleTransaction(TransactionCreateRequest transactionCreateRequest) {
         Response response = new Response();
 
         try {
-            CashAccount cashAccount = cashAccountServiceI.getCashAccount(transactionRequest.getAccountId(), transactionRequest.getCurrencyCode());
+            CashAccount cashAccount = cashAccountServiceI.getCashAccount(transactionCreateRequest.getAccountId(), transactionCreateRequest.getCurrencyCode());
 
             if (cashAccount == null) {
                 response.setStatus(ResponseStatus.ERROR);
@@ -48,10 +49,10 @@ public class TransactionService implements TransactionServiceI {
             }
 
             // TODO: Implement factory method
-            if (transactionRequest.getDirection() == TransactionDirection.IN.getValue()) {
-                deposit(cashAccount, transactionRequest, response);
-            } else if (transactionRequest.getDirection() == TransactionDirection.OUT.getValue()) {
-                withdraw(cashAccount, transactionRequest, response);
+            if (transactionCreateRequest.getDirection() == TransactionDirection.IN.getValue()) {
+                deposit(cashAccount, transactionCreateRequest, response);
+            } else if (transactionCreateRequest.getDirection() == TransactionDirection.OUT.getValue()) {
+                withdraw(cashAccount, transactionCreateRequest, response);
             } else {
                 logger.error("Invalid transaction direction");
 
@@ -70,7 +71,7 @@ public class TransactionService implements TransactionServiceI {
     @Override
     public Response getTransactions(String accountId) {
         try {
-            List<Transaction> transactionList = transactionMapper.getTransactionDetails(accountId);
+            List<TransactionGetResponse> transactionList = transactionMapper.getTransactionDetails(accountId);
             return ServiceResponseHandler.generateResponse(ResponseStatus.SUCCESS, transactionList);
         } catch (Exception e) {
             logger.error("Error in getting transaction details", e);
@@ -78,19 +79,19 @@ public class TransactionService implements TransactionServiceI {
         }
     }
 
-    private void deposit(CashAccount cashAccount, TransactionRequest transactionRequest, Response response) {
-        BigDecimal balanceAfterTx = cashAccount.getAvailableBalance().add(transactionRequest.getAmount());
+    private void deposit(CashAccount cashAccount, TransactionCreateRequest transactionCreateRequest, Response response) {
+        BigDecimal balanceAfterTx = cashAccount.getAvailableBalance().add(transactionCreateRequest.getAmount());
 
         try {
-            doTransaction(cashAccount, transactionRequest, response, balanceAfterTx);
+            doTransaction(cashAccount, transactionCreateRequest, response, balanceAfterTx);
         } catch (Exception e) {
             response.setMessage("Error in deposit");
             response.setStatus(ResponseStatus.ERROR);
         }
     }
 
-    private void withdraw(CashAccount cashAccount, TransactionRequest transactionRequest, Response response) {
-        BigDecimal balanceAfterTx = cashAccount.getAvailableBalance().subtract(transactionRequest.getAmount());
+    private void withdraw(CashAccount cashAccount, TransactionCreateRequest transactionCreateRequest, Response response) {
+        BigDecimal balanceAfterTx = cashAccount.getAvailableBalance().subtract(transactionCreateRequest.getAmount());
 
         if (balanceAfterTx.compareTo(MIN_ACC_BALANCE) < 0) {
             response.setMessage("Insufficient account balance");
@@ -100,7 +101,7 @@ public class TransactionService implements TransactionServiceI {
         }
 
         try {
-            doTransaction(cashAccount, transactionRequest, response, balanceAfterTx);
+            doTransaction(cashAccount, transactionCreateRequest, response, balanceAfterTx);
         } catch (Exception e) {
             logger.error("Error", e);
 
@@ -109,29 +110,30 @@ public class TransactionService implements TransactionServiceI {
         }
     }
 
-    private void doTransaction(CashAccount cashAccount, TransactionRequest transactionRequest, Response response, BigDecimal balanceAfterTx) {
+    private void doTransaction(CashAccount cashAccount, TransactionCreateRequest transactionCreateRequest, Response response, BigDecimal balanceAfterTx) {
         cashAccount.setAvailableBalance(balanceAfterTx);
 
         try {
             cashAccountServiceI.updateCashAccount(cashAccount);
-            Transaction transaction = updateTransaction(cashAccount, transactionRequest, TransactionStatus.SUCCESS); // Fail log transaction
+            Transaction transaction = updateTransaction(cashAccount, transactionCreateRequest, TransactionStatus.SUCCESS); // Fail log transaction
 
             response.setStatus(ResponseStatus.SUCCESS);
-            response.setData(getTransactionResponseData(transaction, transactionRequest, cashAccount));
+            response.setData(getTransactionResponseData(transaction, transactionCreateRequest, cashAccount));
         } catch (Exception e) {
             logger.error("Error", e);
             throw e;
         }
     }
 
-    private Transaction updateTransaction(CashAccount updatedCashAcc, TransactionRequest transactionRequest, TransactionStatus transactionStatus) {
+    private Transaction updateTransaction(CashAccount updatedCashAcc, TransactionCreateRequest transactionCreateRequest, TransactionStatus transactionStatus) {
         Transaction transaction = new Transaction();
 
+        transaction.setCashAccountId(updatedCashAcc.getCashAccountId());
         transaction.setAmount(updatedCashAcc.getAvailableBalance());
         transaction.setTransactionTime(new Timestamp(System.currentTimeMillis()));
-        transaction.setDirection(transactionRequest.getDirection());
+        transaction.setDirection(transactionCreateRequest.getDirection());
         transaction.setStatus(transactionStatus.getValue());
-        transaction.setDescription(transactionRequest.getDescription());
+        transaction.setDescription(transactionCreateRequest.getDescription());
 
         try {
             transactionMapper.insertTransaction(transaction);
@@ -143,17 +145,17 @@ public class TransactionService implements TransactionServiceI {
         return transaction;
     }
 
-    private TransactionResponse getTransactionResponseData(Transaction transaction, TransactionRequest transactionRequest, CashAccount cashAccount) {
-        TransactionResponse transactionResponse = new TransactionResponse();
+    private TransactionCreateResponse getTransactionResponseData(Transaction transaction, TransactionCreateRequest transactionCreateRequest, CashAccount cashAccount) {
+        TransactionCreateResponse transactionCreateResponse = new TransactionCreateResponse();
 
-        transactionResponse.setTransactionId(transaction.getTransactionId());
-        transactionResponse.setAccountId(transactionRequest.getAccountId());
-        transactionResponse.setTransactionDirection(transactionRequest.getDirection());
-        transactionResponse.setCurrencyCode(transactionRequest.getCurrencyCode());
-        transactionResponse.setAmount(transactionRequest.getAmount());
-        transactionResponse.setDescription(transactionRequest.getDescription());
-        transactionResponse.setNewBalance(cashAccount.getAvailableBalance());
+        transactionCreateResponse.setTransactionId(transaction.getTransactionId());
+        transactionCreateResponse.setAccountId(transactionCreateRequest.getAccountId());
+        transactionCreateResponse.setTransactionDirection(transactionCreateRequest.getDirection());
+        transactionCreateResponse.setCurrencyCode(transactionCreateRequest.getCurrencyCode());
+        transactionCreateResponse.setAmount(transactionCreateRequest.getAmount());
+        transactionCreateResponse.setDescription(transactionCreateRequest.getDescription());
+        transactionCreateResponse.setNewBalance(cashAccount.getAvailableBalance());
 
-        return transactionResponse;
+        return transactionCreateResponse;
     }
 }

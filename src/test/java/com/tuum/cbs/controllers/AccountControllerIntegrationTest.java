@@ -1,7 +1,7 @@
 package com.tuum.cbs.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tuum.cbs.beans.common.request.AccountRequest;
+import com.tuum.cbs.beans.common.requests.AccountCreateRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -30,19 +31,30 @@ public class AccountControllerIntegrationTest {
     ObjectMapper objectMapper;
 
     @Test
-    public void CreateAccountTests() throws Exception {
-        AccountRequest accountRequests = new AccountRequest();
+    public void createNewAccountShouldSuccess() throws Exception {
+        AccountCreateRequest accountCreateRequests = new AccountCreateRequest();
 
-        accountRequests.setCustomerId(1);
-        accountRequests.setCountryId(1);
-        accountRequests.setCurrencyCodeList(List.of(new String[]{"EUR", "USD"}));
+        accountCreateRequests.setCustomerId(1);
+        accountCreateRequests.setCountryId(1);
+        accountCreateRequests.setCurrencyCodeList(List.of(new String[]{"EUR", "USD"}));
 
         this.mvc.perform(post("/createAccount")
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(accountRequests))
+                        .content(objectMapper.writeValueAsString(accountCreateRequests))
                 )
                 .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.data.accountId").exists());
+    }
+
+    @Test
+    public void getAccountShouldSuccess() throws Exception {
+        mvc.perform(get("/getAccount?accountId=TEST_1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content()
+                        .contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.data.customerId").value(1));
     }
 }

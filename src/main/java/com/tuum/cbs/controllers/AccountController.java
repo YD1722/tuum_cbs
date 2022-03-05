@@ -1,6 +1,6 @@
 package com.tuum.cbs.controllers;
 
-import com.tuum.cbs.beans.common.request.AccountRequest;
+import com.tuum.cbs.beans.common.requests.AccountCreateRequest;
 import com.tuum.cbs.beans.common.response.Response;
 import com.tuum.cbs.helpers.validators.AccountRequestValidator;
 import com.tuum.cbs.helpers.validators.RequestValidatorI;
@@ -21,10 +21,9 @@ public class AccountController {
     }
 
     @PostMapping("/createAccount")
-    public ResponseEntity createNewAccount(@Valid @RequestBody AccountRequest accountRequest) {
+    public ResponseEntity createNewAccount(@Valid @RequestBody AccountCreateRequest accountCreateRequest) {
         try {
-            // TODO: Replace with custom annotation
-            this.accountRequestValidator = new AccountRequestValidator(accountRequest);
+            this.accountRequestValidator = new AccountRequestValidator(accountCreateRequest);
             this.accountRequestValidator.validate();
 
             if (!this.accountRequestValidator.isValid()) {
@@ -33,7 +32,7 @@ public class AccountController {
                         .body(this.accountRequestValidator.getValidationResults());
             }
 
-            Response response = accountServiceI.createNewAccount(accountRequest);
+            Response response = accountServiceI.createNewAccount(accountCreateRequest);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

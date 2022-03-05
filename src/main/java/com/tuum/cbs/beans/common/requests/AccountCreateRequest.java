@@ -1,10 +1,10 @@
-package com.tuum.cbs.beans.common.request;
+package com.tuum.cbs.beans.common.requests;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-public class AccountRequest {
+public class AccountCreateRequest {
     @Min(1)
     private int customerId;
 

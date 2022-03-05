@@ -1,6 +1,7 @@
 package com.tuum.cbs.mapper;
 
 import com.tuum.cbs.beans.Transaction;
+import com.tuum.cbs.beans.common.response.TransactionGetResponse;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -12,5 +13,5 @@ public interface TransactionMapper {
     int insertTransaction(Transaction transaction);
 
     @Select("SELECT * from VW_TRANSACTION_LOGS WHERE account_id = #{accountId}")
-    List<Transaction> getTransactionDetails(@Param("accountId") String accountId);
+    List<TransactionGetResponse> getTransactionDetails(@Param("accountId") String accountId);
 }

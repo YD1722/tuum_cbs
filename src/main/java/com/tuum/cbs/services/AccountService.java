@@ -1,11 +1,11 @@
 package com.tuum.cbs.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tuum.cbs.beans.BankAccount;
 import com.tuum.cbs.beans.CashAccount;
 import com.tuum.cbs.beans.common.ResponseStatus;
-import com.tuum.cbs.beans.common.request.AccountRequest;
+import com.tuum.cbs.beans.common.requests.AccountCreateRequest;
+import com.tuum.cbs.beans.common.response.AccountResponse;
 import com.tuum.cbs.beans.common.response.Response;
 import com.tuum.cbs.helpers.AccountHelper;
 import com.tuum.cbs.helpers.ArrayUtils;
@@ -24,29 +24,26 @@ public class AccountService implements AccountServiceI {
     Logger logger = LoggerFactory.getLogger(AccountService.class);
 
     private AccountMapper accountMapper;
-    private ObjectMapper objectMapper;
     private CashAccountServiceI cashAccountServiceI;
 
     public AccountService(AccountMapper accountMapper, ObjectMapper objectMapper, CashAccountServiceI cashAccountServiceI) {
         this.accountMapper = accountMapper;
-        this.objectMapper = objectMapper;
         this.cashAccountServiceI = cashAccountServiceI;
     }
 
-    // TODO: add propagation
     @Override
     @Transactional
-    public Response createNewAccount(AccountRequest accountRequest) {
+    public Response createNewAccount(AccountCreateRequest accountCreateRequest) {
         // TODO: Move to separate service response handler
         Response response = new Response();
 
         try {
             String accountId;
-            List<String> currencyCodeList = accountRequest.getCurrencyCodeList();
-            List<CashAccount> customerCashAccountList = accountMapper.getAccountsByCustomerId(accountRequest.getCustomerId());
+            List<String> currencyCodeList = accountCreateRequest.getCurrencyCodeList();
+            List<CashAccount> customerCashAccountList = accountMapper.getAccountsByCustomerId(accountCreateRequest.getCustomerId());
 
             if (customerCashAccountList == null || customerCashAccountList.size() == 0) {
-                BankAccount bankAccount = createNewBankAccount(accountRequest);
+                BankAccount bankAccount = createNewBankAccount(accountCreateRequest);
                 accountId = bankAccount.getAccountId();
 
                 accountMapper.insertBankAccount(bankAccount);
@@ -57,8 +54,7 @@ public class AccountService implements AccountServiceI {
 
             List<CashAccount> cashAccountList = this.cashAccountServiceI.createNewCashAccounts(accountId, currencyCodeList);
 
-            // Response from hashmap
-            response.setData(getAccountResponse(accountId, accountRequest.getCustomerId(), cashAccountList));
+            response.setData(getAccountResponse(accountId, accountCreateRequest.getCustomerId(), cashAccountList));
             response.setStatus(ResponseStatus.SUCCESS);
         } catch (PersistenceException e) {
             logger.error("Error", e);
@@ -95,32 +91,18 @@ public class AccountService implements AccountServiceI {
         return response;
     }
 
-    private ObjectNode getAccountResponse(String accountId, int customerId, List<CashAccount> cashAccountList) {
-        ObjectNode response = objectMapper.createObjectNode();
+    private AccountResponse getAccountResponse(String accountId, int customerId, List<CashAccount> cashAccountList) {
+        // TODO: Use Separate factory to resolve response objects
+        AccountResponse accountResponse = new AccountResponse();
 
-        response.put("accountId", accountId);
-        response.put("customerId", customerId);
-
-        List<ObjectNode> balanceList = getBalanceList(cashAccountList);
-
-        response.put("balances", String.valueOf(balanceList));
-
-        return response;
-    }
-
-    private List<ObjectNode> getBalanceList(List<CashAccount> cashAccountList) {
-        List<ObjectNode> balanceList = new ArrayList<>();
+        accountResponse.setAccountId(accountId);
+        accountResponse.setCustomerId(customerId);
 
         for (CashAccount cashAccount : cashAccountList) {
-            ObjectNode balance = objectMapper.createObjectNode();
-
-            balance.put("amount", cashAccount.getAvailableBalance());
-            balance.put("currency", cashAccount.getCurrencyCode());
-
-            balanceList.add(balance);
+            accountResponse.addBalance(cashAccount.getCurrencyCode(), cashAccount.getAvailableBalance());
         }
 
-        return balanceList;
+        return accountResponse;
     }
 
 
@@ -138,11 +120,11 @@ public class AccountService implements AccountServiceI {
         return ArrayUtils.getListsDiff(reqCurrencyList, existingCurrencyList);
     }
 
-    private BankAccount createNewBankAccount(AccountRequest accountRequest) {
+    private BankAccount createNewBankAccount(AccountCreateRequest accountCreateRequest) {
         BankAccount bankAccount = new BankAccount();
 
         bankAccount.setAccountId(AccountHelper.getAccId());
-        bankAccount.setCustomerId(accountRequest.getCustomerId());
+        bankAccount.setCustomerId(accountCreateRequest.getCustomerId());
 
         return bankAccount;
     }

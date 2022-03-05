@@ -1,16 +1,13 @@
 package com.tuum.cbs.controllers;
 
-import com.tuum.cbs.beans.common.request.TransactionRequest;
+import com.tuum.cbs.beans.common.requests.TransactionCreateRequest;
 import com.tuum.cbs.beans.common.response.Response;
 import com.tuum.cbs.helpers.validators.RequestValidatorI;
 import com.tuum.cbs.helpers.validators.TransactionRequestValidator;
 import com.tuum.cbs.services.TransactionServiceI;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotEmpty;
 
@@ -24,9 +21,9 @@ public class TransactionController {
     }
 
     @PostMapping("/transaction")
-    public ResponseEntity transaction(@RequestBody TransactionRequest transactionRequest) {
+    public ResponseEntity transaction(@RequestBody TransactionCreateRequest transactionCreateRequest) {
         try {
-            this.transactionRequestValidator = new TransactionRequestValidator(transactionRequest);
+            this.transactionRequestValidator = new TransactionRequestValidator(transactionCreateRequest);
             this.transactionRequestValidator.validate();
 
             if (!this.transactionRequestValidator.isValid()) {
@@ -35,14 +32,14 @@ public class TransactionController {
                         .body(this.transactionRequestValidator.getValidationResults());
             }
 
-            Response response = this.transactionServiceI.handleTransaction(transactionRequest);
+            Response response = this.transactionServiceI.handleTransaction(transactionCreateRequest);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @PostMapping("/getTransaction")
+    @GetMapping("/getTransaction")
     public ResponseEntity getTransaction(@RequestParam @NotEmpty String accountId) {
         Response response = this.transactionServiceI.getTransactions(accountId);
         return ResponseEntity.ok(response);

@@ -5,8 +5,8 @@ import java.math.BigDecimal;
 public class CashAccount {
     // TODO : New bean for view data
     private int customerId;
-    private String accountId;
     private int cashAccountId;
+    private String accountId;
     private String currencyCode;
     private BigDecimal balance = BigDecimal.ZERO;
     private BigDecimal availableBalance = BigDecimal.ZERO;

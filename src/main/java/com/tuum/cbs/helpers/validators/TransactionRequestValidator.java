@@ -1,15 +1,15 @@
 package com.tuum.cbs.helpers.validators;
 
 import com.tuum.cbs.beans.common.TransactionDirection;
-import com.tuum.cbs.beans.common.request.TransactionRequest;
+import com.tuum.cbs.beans.common.requests.TransactionCreateRequest;
 
 import java.math.BigDecimal;
 
 public class TransactionRequestValidator extends RequestValidator {
-    private TransactionRequest transactionRequest;
+    private TransactionCreateRequest transactionCreateRequest;
 
-    public TransactionRequestValidator(TransactionRequest transactionRequest) {
-        this.transactionRequest = transactionRequest;
+    public TransactionRequestValidator(TransactionCreateRequest transactionCreateRequest) {
+        this.transactionCreateRequest = transactionCreateRequest;
     }
 
     @Override
@@ -20,13 +20,13 @@ public class TransactionRequestValidator extends RequestValidator {
     }
 
     private void validateCurrency() {
-        if (!CommonValidationHelper.isCurrencySupported(this.transactionRequest.getCurrencyCode())) {
+        if (!CommonValidationHelper.isCurrencySupported(this.transactionCreateRequest.getCurrencyCode())) {
             validationResults.add("Invalid currency code");
         }
     }
 
     private void validateAmount() {
-        if (this.transactionRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (this.transactionCreateRequest.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             validationResults.add("Invalid amount");
         }
     }
@@ -38,8 +38,8 @@ public class TransactionRequestValidator extends RequestValidator {
     }
 
     private boolean isDirectionValid() {
-        return this.transactionRequest.getDirection() == TransactionDirection.IN.getValue()
-                || this.transactionRequest.getDirection() == TransactionDirection.OUT.getValue();
+        return this.transactionCreateRequest.getDirection() == TransactionDirection.IN.getValue()
+                || this.transactionCreateRequest.getDirection() == TransactionDirection.OUT.getValue();
     }
 }
 

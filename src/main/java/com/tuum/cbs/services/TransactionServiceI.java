@@ -1,10 +1,10 @@
 package com.tuum.cbs.services;
 
-import com.tuum.cbs.beans.common.request.TransactionRequest;
+import com.tuum.cbs.beans.common.requests.TransactionCreateRequest;
 import com.tuum.cbs.beans.common.response.Response;
 
 public interface TransactionServiceI {
-    Response handleTransaction(TransactionRequest transactionRequest);
+    Response handleTransaction(TransactionCreateRequest transactionCreateRequest);
 
     Response getTransactions(String accountId);
 }

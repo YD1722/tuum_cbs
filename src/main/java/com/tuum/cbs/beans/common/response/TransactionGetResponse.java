@@ -1,20 +1,13 @@
-package com.tuum.cbs.beans.common.request;
+package com.tuum.cbs.beans.common.response;
 
-import javax.validation.constraints.NotEmpty;
 import java.math.BigDecimal;
 
-public class TransactionRequest {
-    @NotEmpty
+public class TransactionGetResponse {
     private String accountId;
-
+    private int transactionId;
     private BigDecimal amount;
-
-    @NotEmpty
-    private String currencyCode; // TODO: Currency ID
-
+    private String currencyCode;
     private int direction;
-
-    @NotEmpty
     private String description;
 
     public String getAccountId() {
@@ -23,6 +16,14 @@ public class TransactionRequest {
 
     public void setAccountId(String accountId) {
         this.accountId = accountId;
+    }
+
+    public int getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(int transactionId) {
+        this.transactionId = transactionId;
     }
 
     public BigDecimal getAmount() {
@@ -57,5 +58,3 @@ public class TransactionRequest {
         this.description = description;
     }
 }
-
-

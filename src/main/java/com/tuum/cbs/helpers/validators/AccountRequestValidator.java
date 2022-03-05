@@ -1,14 +1,14 @@
 package com.tuum.cbs.helpers.validators;
 
-import com.tuum.cbs.beans.common.request.AccountRequest;
+import com.tuum.cbs.beans.common.requests.AccountCreateRequest;
 
 import java.util.List;
 
 public class AccountRequestValidator extends RequestValidator {
-    private AccountRequest accountRequest;
+    private AccountCreateRequest accountCreateRequest;
 
-    public AccountRequestValidator(AccountRequest accountRequest){
-        this.accountRequest = accountRequest;
+    public AccountRequestValidator(AccountCreateRequest accountCreateRequest){
+        this.accountCreateRequest = accountCreateRequest;
     }
 
     @Override
@@ -17,7 +17,7 @@ public class AccountRequestValidator extends RequestValidator {
     }
 
     private void validateCurrency() {
-        List<String> currencyList = this.accountRequest.getCurrencyCodeList();
+        List<String> currencyList = this.accountCreateRequest.getCurrencyCodeList();
 
         for (String code : currencyList) {
             if (!CommonValidationHelper.isCurrencySupported(code)) {

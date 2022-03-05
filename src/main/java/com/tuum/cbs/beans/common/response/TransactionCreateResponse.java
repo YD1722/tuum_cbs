@@ -2,7 +2,7 @@ package com.tuum.cbs.beans.common.response;
 
 import java.math.BigDecimal;
 
-public class TransactionResponse {
+public class TransactionCreateResponse {
     private String accountId;
     private int transactionId;
     private BigDecimal amount;
