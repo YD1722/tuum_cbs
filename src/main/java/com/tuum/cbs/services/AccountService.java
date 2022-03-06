@@ -1,6 +1,5 @@
 package com.tuum.cbs.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tuum.cbs.beans.BankAccount;
 import com.tuum.cbs.beans.CashAccount;
 import com.tuum.cbs.beans.common.ResponseStatus;
@@ -10,7 +9,6 @@ import com.tuum.cbs.beans.common.response.Response;
 import com.tuum.cbs.helpers.AccountHelper;
 import com.tuum.cbs.helpers.ArrayUtils;
 import com.tuum.cbs.mapper.AccountMapper;
-import org.apache.ibatis.exceptions.PersistenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -34,9 +32,6 @@ public class AccountService implements AccountServiceI {
     @Override
     @Transactional
     public Response createNewAccount(AccountCreateRequest accountCreateRequest) {
-        // TODO: Move to separate service response handler
-        Response response = new Response();
-
         try {
             String accountId;
             List<String> currencyCodeList = accountCreateRequest.getCurrencyCodeList();
@@ -54,41 +49,27 @@ public class AccountService implements AccountServiceI {
 
             List<CashAccount> cashAccountList = this.cashAccountServiceI.createNewCashAccounts(accountId, currencyCodeList);
 
-            response.setData(getAccountResponse(accountId, accountCreateRequest.getCustomerId(), cashAccountList));
-            response.setStatus(ResponseStatus.SUCCESS);
-        } catch (PersistenceException e) {
-            logger.error("Error", e);
-            response.setStatus(ResponseStatus.ERROR);
+            return ServiceResponseHandler.generateResponse(ResponseStatus.SUCCESS, getAccountResponse(accountId, accountCreateRequest.getCustomerId(), cashAccountList));
         } catch (Exception e) {
             logger.error("Error", e);
-            response.setStatus(ResponseStatus.ERROR);
+            return ServiceResponseHandler.generateErrorResponse();
         }
-
-        return response;
     }
 
     @Override
     public Response getAccountDetails(String accountId) {
-        Response response = new Response();
-
         try {
             List<CashAccount> customerCashAccountList = accountMapper.getAccountsByAccountId(accountId);
 
             if (customerCashAccountList == null || customerCashAccountList.size() == 0) {
-                response.setMessage("Account not found");
-                response.setStatus(ResponseStatus.ERROR);
-
-                return response;
+                return ServiceResponseHandler.generateErrorResponse("Account not found");
             }
 
-            response.setData(getAccountResponse(accountId, customerCashAccountList.get(0).getCustomerId(), customerCashAccountList));
-            response.setStatus(ResponseStatus.SUCCESS);
+            return ServiceResponseHandler.generateResponse(ResponseStatus.SUCCESS, getAccountResponse(accountId, customerCashAccountList.get(0).getCustomerId(), customerCashAccountList));
         } catch (Exception e) {
             logger.error("Error", e);
-            response.setStatus(ResponseStatus.ERROR);
+            return ServiceResponseHandler.generateErrorResponse();
         }
-
-        return response;
     }
 
     private AccountResponse getAccountResponse(String accountId, int customerId, List<CashAccount> cashAccountList) {

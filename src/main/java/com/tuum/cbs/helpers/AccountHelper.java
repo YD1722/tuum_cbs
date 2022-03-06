@@ -2,13 +2,9 @@ package com.tuum.cbs.helpers;
 
 import java.util.Random;
 
-public class AccountHelper {
-    // TODO: Get this from a config file
-    private final static String COUNTRY_CODE = "EE";
-    private final static String CHECK_DIGITS = "33";
-    private final static String BANK_ID = "22";
-    private final static String BRANCH_ID = "00";
+import static com.tuum.cbs.helpers.ApplicationConstants.*;
 
+public class AccountHelper {
     public static String getAccId() {
         return COUNTRY_CODE + CHECK_DIGITS + BANK_ID + BRANCH_ID + getRandomBankAccNumber();
     }
