@@ -2,7 +2,10 @@ package com.tuum.cbs.beans.common.response;
 
 import com.tuum.cbs.beans.common.ResponseStatus;
 
-public class Response {
+import java.io.Serializable;
+
+// TODO: Implement separate message service object
+public class Response implements Serializable {
     private ResponseStatus status;
     private Object data;
     private String message;

@@ -9,6 +9,7 @@ import com.tuum.cbs.beans.common.requests.TransactionCreateRequest;
 import com.tuum.cbs.beans.common.response.Response;
 import com.tuum.cbs.beans.common.response.TransactionCreateResponse;
 import com.tuum.cbs.beans.common.response.TransactionGetResponse;
+import com.tuum.cbs.beans.message.TransactionMessage;
 import com.tuum.cbs.mapper.TransactionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +28,12 @@ public class TransactionService implements TransactionServiceI {
 
     private TransactionMapper transactionMapper;
     private CashAccountServiceI cashAccountServiceI;
+    private MessageServiceI messageServiceI;
 
-    public TransactionService(CashAccountServiceI cashAccountServiceI, TransactionMapper transactionMapper) {
+    public TransactionService(CashAccountServiceI cashAccountServiceI, TransactionMapper transactionMapper, RabbitMqMessageService rabbitMqMessageService) {
         this.cashAccountServiceI = cashAccountServiceI;
         this.transactionMapper = transactionMapper;
+        this.messageServiceI = rabbitMqMessageService;
     }
 
     @Override
@@ -61,7 +64,6 @@ public class TransactionService implements TransactionServiceI {
             }
         } catch (Exception e) {
             logger.error("Error", e);
-
             response.setStatus(ResponseStatus.ERROR);
         }
 
@@ -115,10 +117,13 @@ public class TransactionService implements TransactionServiceI {
 
         try {
             cashAccountServiceI.updateCashAccount(cashAccount);
-            Transaction transaction = updateTransaction(cashAccount, transactionCreateRequest, TransactionStatus.SUCCESS); // Fail log transaction
+            // TODO: log failed transactions as well
+            Transaction transaction = updateTransaction(cashAccount, transactionCreateRequest, TransactionStatus.SUCCESS);
 
             response.setStatus(ResponseStatus.SUCCESS);
             response.setData(getTransactionResponseData(transaction, transactionCreateRequest, cashAccount));
+
+            messageServiceI.send(response);
         } catch (Exception e) {
             logger.error("Error", e);
             throw e;
