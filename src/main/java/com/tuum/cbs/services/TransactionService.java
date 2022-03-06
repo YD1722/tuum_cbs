@@ -27,12 +27,10 @@ public class TransactionService implements TransactionServiceI {
 
     private TransactionMapper transactionMapper;
     private CashAccountServiceI cashAccountServiceI;
-    private MessageServiceI messageServiceI;
 
-    public TransactionService(CashAccountServiceI cashAccountServiceI, TransactionMapper transactionMapper, RabbitMqMessageService rabbitMqMessageService) {
+    public TransactionService(CashAccountServiceI cashAccountServiceI, TransactionMapper transactionMapper) {
         this.cashAccountServiceI = cashAccountServiceI;
         this.transactionMapper = transactionMapper;
-        this.messageServiceI = rabbitMqMessageService;
     }
 
     @Override
@@ -51,10 +49,8 @@ public class TransactionService implements TransactionServiceI {
             // TODO: Implement factory method
             if (transactionCreateRequest.getDirection() == TransactionDirection.IN.getValue()) {
                 response = deposit(cashAccount, transactionCreateRequest);
-                messageServiceI.send(response);
             } else if (transactionCreateRequest.getDirection() == TransactionDirection.OUT.getValue()) {
                 response = withdraw(cashAccount, transactionCreateRequest);
-                messageServiceI.send(response);
             } else {
                 logger.error("Invalid transaction direction");
                 response = ServiceResponseHandler.generateErrorResponse("Invalid transaction");

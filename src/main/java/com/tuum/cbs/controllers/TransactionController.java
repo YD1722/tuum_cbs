@@ -4,7 +4,9 @@ import com.tuum.cbs.beans.common.requests.TransactionCreateRequest;
 import com.tuum.cbs.beans.common.response.Response;
 import com.tuum.cbs.helpers.validators.RequestValidatorI;
 import com.tuum.cbs.helpers.validators.TransactionRequestValidator;
+import com.tuum.cbs.services.RabbitMqMessageService;
 import com.tuum.cbs.services.TransactionServiceI;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +17,15 @@ import javax.validation.constraints.NotEmpty;
 public class TransactionController {
     RequestValidatorI transactionRequestValidator;
     TransactionServiceI transactionServiceI;
+    RabbitMqMessageService rabbitMqMessageService;
 
     public TransactionController(TransactionServiceI transactionServiceI) {
         this.transactionServiceI = transactionServiceI;
+    }
+
+    @Autowired
+    public void setRabbitMqMessageService(RabbitMqMessageService rabbitMqMessageService) {
+        this.rabbitMqMessageService = rabbitMqMessageService;
     }
 
     @PostMapping("/transaction")
@@ -33,6 +41,8 @@ public class TransactionController {
             }
 
             Response response = this.transactionServiceI.handleTransaction(transactionCreateRequest);
+
+            this.rabbitMqMessageService.send(response);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
