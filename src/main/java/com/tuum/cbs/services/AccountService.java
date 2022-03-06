@@ -26,7 +26,7 @@ public class AccountService implements AccountServiceI {
     private AccountMapper accountMapper;
     private CashAccountServiceI cashAccountServiceI;
 
-    public AccountService(AccountMapper accountMapper, ObjectMapper objectMapper, CashAccountServiceI cashAccountServiceI) {
+    public AccountService(AccountMapper accountMapper, CashAccountServiceI cashAccountServiceI) {
         this.accountMapper = accountMapper;
         this.cashAccountServiceI = cashAccountServiceI;
     }

@@ -129,7 +129,7 @@ public class TransactionService implements TransactionServiceI {
         Transaction transaction = new Transaction();
 
         transaction.setCashAccountId(updatedCashAcc.getCashAccountId());
-        transaction.setAmount(updatedCashAcc.getAvailableBalance());
+        transaction.setAmount(transactionCreateRequest.getAmount());
         transaction.setTransactionTime(new Timestamp(System.currentTimeMillis()));
         transaction.setDirection(transactionCreateRequest.getDirection());
         transaction.setStatus(transactionStatus.getValue());

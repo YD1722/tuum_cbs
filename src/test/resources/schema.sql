@@ -14,7 +14,18 @@ CREATE TABLE cash_account
     available_balance INT
 );
 
-CREATE OR REPLACE VIEW public.all_cash_accounts
+CREATE TABLE transaction_logs
+(
+    transaction_id   INT AUTO_INCREMENT PRIMARY KEY,
+    cash_account_id  INT       NOT NULL,
+    direction        INT       NOT NULL,
+    amount           INT       NOT NULL,
+    status           INT       NOT NULL,
+    transaction_time TIMESTAMP NOT NULL,
+    description      VARCHAR   NOT NULL
+);
+
+CREATE OR REPLACE VIEW all_cash_accounts
 AS
 SELECT bank_account.account_id,
        bank_account.customer_id,
@@ -24,3 +35,18 @@ SELECT bank_account.account_id,
        cash_account.available_balance
 FROM bank_account
          JOIN cash_account ON bank_account.account_id = cash_account.account_id;
+
+
+CREATE OR REPLACE VIEW vw_transaction_logs
+AS
+SELECT ca.account_id,
+       ca.currency_code,
+       tl.transaction_id,
+       tl.cash_account_id,
+       tl.direction,
+       tl.amount,
+       tl.status,
+       tl.transaction_time,
+       tl.description
+FROM transaction_logs tl
+         JOIN cash_account ca ON tl.cash_account_id = ca.cash_account_id;
