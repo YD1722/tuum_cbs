@@ -10,10 +10,13 @@ services:
       - "8080:8080"
     depends_on:
       - db
+      - cbs_mq
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/tuum_cbs
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=123
+      - SPRING_RABBITMQ_HOST=cbs_mq
+      - SPRING_RABBITMQ_PORT=15672
 
   db:
     image: 'tuum_cbs_db:latest'
@@ -23,8 +26,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123
 
-  rabbit:
-    container_name: tuum_cbs_mq
+  cbs_mq:
+    container_name: cbs_mq
     image: rabbitmq:3-management-alpine
     volumes:
       - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
