@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public class CashAccount {
     // TODO : New bean for view data
+    // TODO: handle number of decimal points in a settings file
     private int customerId;
     private int cashAccountId;
     private String accountId;
