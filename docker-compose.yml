@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   cbs:
-    image: 'tuum_cbs:latest'
+    image: 'yd1722/tuum_cbs:latest'
     build:
       context: .
     container_name: tuum_cbs

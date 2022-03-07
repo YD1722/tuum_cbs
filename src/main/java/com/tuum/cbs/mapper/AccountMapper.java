@@ -11,6 +11,7 @@ public interface AccountMapper {
     @Select("SELECT * FROM ALL_CASH_ACCOUNTS where customer_id = #{customerId}")
     List<CashAccount> getAccountsByCustomerId(@Param("customerId") int customerId);
 
+    // TODO: Change view name
     @Select("SELECT * FROM ALL_CASH_ACCOUNTS where account_id = #{accountId}")
     List<CashAccount> getAccountsByAccountId(@Param("accountId") String accountId);
 
