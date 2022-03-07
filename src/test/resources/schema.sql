@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS bank_account
 (
-    account_id  VARCHAR(30) NOT NULL,
+    account_id  VARCHAR(30) NOT NULL PRIMARY KEY,
     customer_id INT         NOT NULL,
     status      INT
 );

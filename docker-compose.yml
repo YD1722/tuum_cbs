@@ -19,19 +19,23 @@ services:
       - SPRING_RABBITMQ_PORT=15672
 
   db:
-    image: 'tuum_cbs_db:latest'
+    image: 'postgres'
+    container_name: db
     ports:
       - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=tuum_cbs
+    volumes:
+      - ./postgres/db_dump/tuum_cbs.sql:/docker-entrypoint-initdb.d/tuum_cbs.sql
 
   cbs_mq:
-    container_name: cbs_mq
     image: rabbitmq:3-management-alpine
-    volumes:
-      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
-      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    container_name: cbs_mq
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro

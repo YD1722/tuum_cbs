@@ -5,7 +5,7 @@
 -- Dumped from database version 14.2
 -- Dumped by pg_dump version 14.2
 
--- Started on 2022-03-05 20:25:39
+-- Started on 2022-03-07 07:30:46
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -17,6 +17,25 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
+
+--
+-- TOC entry 3 (class 2615 OID 2200)
+-- Name: public; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA public;
+
+
+ALTER SCHEMA public OWNER TO postgres;
+
+--
+-- TOC entry 3333 (class 0 OID 0)
+-- Dependencies: 3
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: postgres
+--
+
+COMMENT ON SCHEMA public IS 'standard public schema';
+
 
 SET default_tablespace = '';
 
@@ -166,7 +185,7 @@ ALTER TABLE ONLY public.bank_account
     ADD CONSTRAINT constraint_name UNIQUE (account_id);
 
 
--- Completed on 2022-03-05 20:25:39
+-- Completed on 2022-03-07 07:30:47
 
 --
 -- PostgreSQL database dump complete

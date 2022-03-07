@@ -1,11 +1,11 @@
 package com.tuum.cbs.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tuum.cbs.beans.common.ResponseStatus;
 import com.tuum.cbs.beans.common.TransactionDirection;
 import com.tuum.cbs.beans.common.requests.TransactionCreateRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.internal.matchers.GreaterThan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -71,6 +71,26 @@ public class TransactionControllerIntegrationTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.data.amount").value(100))
                 .andExpect(jsonPath("$.data.transactionId").exists());
+    }
+
+    @Test
+    public void shouldNotPerformAnyTransactionsIfCashAccountNotExists() throws Exception {
+        TransactionCreateRequest transactionCreateRequest = new TransactionCreateRequest();
+
+        transactionCreateRequest.setAccountId("TEST_1_NONE");
+        transactionCreateRequest.setAmount(BigDecimal.valueOf(100));
+        transactionCreateRequest.setCurrencyCode("EUR");
+        transactionCreateRequest.setDirection(TransactionDirection.IN.getValue());
+        transactionCreateRequest.setDescription("Integration Test");
+
+        mvc.perform(post("/transaction")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(transactionCreateRequest))
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(ResponseStatus.ERROR.toString()));
     }
 
     @Test

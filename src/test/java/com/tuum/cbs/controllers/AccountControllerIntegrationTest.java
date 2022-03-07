@@ -1,6 +1,7 @@
 package com.tuum.cbs.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tuum.cbs.beans.common.ResponseStatus;
 import com.tuum.cbs.beans.common.requests.AccountCreateRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,12 +50,42 @@ public class AccountControllerIntegrationTest {
     }
 
     @Test
+    public void shouldNotCreateNewCashAccountsIfAlreadyExists() throws Exception {
+        AccountCreateRequest accountCreateRequest_1 = new AccountCreateRequest();
+
+        accountCreateRequest_1.setCustomerId(2);
+        accountCreateRequest_1.setCountryId(1);
+        accountCreateRequest_1.setCurrencyCodeList(List.of(new String[]{"EUR", "USD"}));
+
+        this.mvc.perform(post("/createAccount")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(accountCreateRequest_1))
+                )
+                .andExpect(status().isOk());
+
+        AccountCreateRequest accountCreateRequest_2 = new AccountCreateRequest();
+
+        accountCreateRequest_2.setCustomerId(3);
+        accountCreateRequest_2.setCountryId(1);
+        accountCreateRequest_2.setCurrencyCodeList(List.of(new String[]{"EUR", "USD"}));
+
+        this.mvc.perform(post("/createAccount")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(accountCreateRequest_1))
+                )
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(ResponseStatus.ERROR.toString()));
+    }
+
+    @Test
     public void getAccountShouldSuccess() throws Exception {
         mvc.perform(get("/getAccount?accountId=TEST_1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content()
                         .contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.data.customerId").value(1));
+                .andExpect(jsonPath("$.data.customerId").value(100));
     }
 }

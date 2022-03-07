@@ -29,6 +29,14 @@ public class AccountService implements AccountServiceI {
         this.cashAccountServiceI = cashAccountServiceI;
     }
 
+    /**
+     * TODO: [Discuss]
+     * Users can't have multiple currency accounts under the same account number.
+     * If they need that they need a different bank account with the same customer id.
+     *
+     * @param accountCreateRequest
+     * @return
+     */
     @Override
     @Transactional
     public Response createNewAccount(AccountCreateRequest accountCreateRequest) {
@@ -44,6 +52,11 @@ public class AccountService implements AccountServiceI {
                 accountMapper.insertBankAccount(bankAccount);
             } else {
                 currencyCodeList = getMissingCurrencyList(currencyCodeList, getExistingCurrencyList(customerCashAccountList));
+
+                if (currencyCodeList == null || currencyCodeList.size() == 0) {
+                    return ServiceResponseHandler.generateErrorResponse("Account Exists");
+                }
+
                 accountId = customerCashAccountList.get(0).getAccountId();
             }
 
